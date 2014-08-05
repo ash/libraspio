@@ -18,7 +18,7 @@ int piinit() {
         return 0;
     }
 
-    raw_timer = mmap(NULL, 64, PROT_READ, MAP_SHARED, devmem, 0x20003004);
+    raw_timer = mmap(NULL, 96, PROT_READ|PROT_WRITE, MAP_SHARED, devmem, 0x20003000);
 
     close(devmem);
 
@@ -28,6 +28,8 @@ int piinit() {
     }
 
     timer_lo = (volatile uint32_t *) raw_timer;
+    timer_lo++;
+
     timer_hi = timer_lo;
     timer_hi++;
 
@@ -43,7 +45,7 @@ uint64_t pitime() {
     return time;
 }
 
-void pi_delay(int delay_microseconds) {
+void pidelay(int delay_microseconds) {
     uint64_t t0 = pitime();
     uint64_t t1 = t0 + delay_microseconds;
 
