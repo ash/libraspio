@@ -12,5 +12,7 @@ int main() {
     pidelay(1000000);
     printf("\tdone\n");
 
+    piclose();
+
     return 0;
 }

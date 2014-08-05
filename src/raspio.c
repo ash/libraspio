@@ -6,8 +6,10 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-void *raw_timer;
+void *raw_timer, *raw_gpio;
 volatile uint32_t *timer_lo, *timer_hi;
+
+#define BLOCK_SIZE (4096)
 
 int piinit() {
     int devmem;
@@ -18,11 +20,13 @@ int piinit() {
         return 0;
     }
 
-    raw_timer = mmap(NULL, 96, PROT_READ|PROT_WRITE, MAP_SHARED, devmem, 0x20003000);
+    raw_timer = mmap(NULL, BLOCK_SIZE, PROT_READ, MAP_SHARED, devmem, 0x20003000);
+    raw_gpio = mmap(NULL, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, devmem, 0x20200000);
 
     close(devmem);
 
-    if (raw_timer == MAP_FAILED) {
+    if (raw_timer == MAP_FAILED ||
+        raw_gpio == MAP_FAILED) {
         printf("Error while mapping timer memory\n");
         return 0;
     }
@@ -34,6 +38,11 @@ int piinit() {
     timer_hi++;
 
     return 1;
+}
+
+int piclose() {
+    unmapmem((void**) &raw_timer, BLOCK_SIZE);
+    unmapmem((void**) &raw_gpio, BLOCK_SIZE);
 }
 
 uint64_t pitime() {
